@@ -1,0 +1,290 @@
+<style>
+  .ironic-dialogue .ed-wrap { padding: 10px 12px; height:100%; box-sizing: border-box; }
+  .ironic-dialogue .ed-toolbar { display:flex; gap:8px; align-items:center; margin-bottom:8px; }
+  .ironic-dialogue .ed-nodes { display:grid; grid-template-columns: 1fr; gap:10px; max-height: calc(100% - 85px); overflow:auto; }
+  .ironic-dialogue .node { border:1px solid var(--color-border-light-primary,#9993); border-radius:10px; padding:10px; background: rgba(0,0,0,0.03); }
+  .ironic-dialogue .node .head { display:flex; align-items:center; gap:8px; margin-bottom:6px; }
+  .ironic-dialogue .node .title { font-weight:700; }
+  .ironic-dialogue .node .grid { display:grid; grid-template-columns: 1fr 1fr; gap:8px; }
+  .ironic-dialogue textarea.node-text { min-height: 90px; }
+  .ironic-dialogue .opts { margin-top:8px; display:flex; flex-direction:column; gap:8px; }
+  .ironic-dialogue .opt { border:1px dashed #9994; border-radius:8px; padding:8px; background: #fff; }
+  .ironic-dialogue .bad { outline:2px solid #e74c3c; }
+  .ironic-dialogue .opt .row { display:grid; grid-template-columns: 1fr 1fr; gap:8px; }
+  .ironic-dialogue .muted { opacity:0.75; font-size:0.9rem; }
+  .ironic-dialogue .req-grid { display:grid; grid-template-columns: 1fr 1fr 1fr; gap:8px; }
+  .ironic-dialogue .req-grid .wide { grid-column: 1 / -1; }
+</style>
+
+<div class="ed-wrap">
+  <div class="ed-toolbar">
+    <label>Start Node:
+      <select name="start">
+        {{#each nodes as |n|}}
+          <option value="{{n.id}}" {{#if (eq ../start n.id)}}selected{{/if}}>{{n.id}}</option>
+        {{/each}}
+      </select>
+    </label>
+
+    <button type="button" data-action="add-node"><i class="fas fa-plus"></i> Add Node</button>
+    <button type="button" data-action="save" class="save"><i class="fas fa-save"></i> Save</button>
+    <button type="button" data-action="preview"><i class="fas fa-eye"></i> Preview</button>
+    <button type="button" data-action="dialogue_tree"><i class="fas fa-diagram-project"></i> Tree</button>
+  </div>
+
+  <div class="ed-nodes">
+    {{#each nodes as |n|}}
+      <section class="node">
+        <div class="head">
+          <div class="title">Node: <b>{{n.id}}</b></div>
+          <div style="margin-left:auto; display:flex; gap:8px; align-items:center;">
+            <input type="text" class="node-id" data-oldid="{{n.id}}" value="{{n.id}}" title="Rename node id">
+            <button type="button" data-action="del-node" data-id="{{n.id}}"><i class="fas fa-trash"></i></button>
+          </div>
+        </div>
+
+        <div class="grid">
+          <label>Speaker
+            <input type="text" class="node-speaker" data-id="{{n.id}}" value="{{n.speaker}}">
+          </label>
+        </div>
+
+        <label>Text
+          <textarea class="node-text" data-id="{{n.id}}">{{n.text}}</textarea>
+        </label>
+
+        <div class="opts">
+          <div><b>Options</b> <button type="button" data-action="add-opt" data-id="{{n.id}}"><i class="fas fa-plus"></i> Add Option</button></div>
+
+          {{#each n.options as |o|}}
+            <div class="opt">
+              <div class="head">
+                <div><b>Option:</b> {{o.id}}</div>
+                <button type="button" data-action="del-opt" data-nid="{{../id}}" data-oid="{{o.id}}"><i class="fas fa-trash"></i></button>
+              </div>
+
+              <div class="row">
+                <label>Label
+                  <input type="text" class="opt-label" data-nid="{{../id}}" data-oid="{{o.id}}" value="{{o.label}}">
+                </label>
+                <label>Next Node
+                  <select class="opt-next" data-nid="{{../id}}" data-oid="{{o.id}}">
+                    <option value="">(stay)</option>
+                    {{#each ../../nodes as |cand|}}
+                      <option value="{{cand.id}}" {{#if (eq o.next cand.id)}}selected{{/if}}>{{cand.id}}</option>
+                    {{/each}}
+                    <option value="END" {{#if (eq o.next "END")}}selected{{/if}}>END</option>
+                  </select>
+                </label>
+              </div>
+
+              <div class="muted">Requirement (D&D5e)</div>
+              <div class="req-grid">
+                <label>Type
+                  <select class="req-type" data-nid="{{../id}}" data-oid="{{o.id}}">
+                    <option value="">None</option>
+                    <option value="ability"        {{#if (eq o.requirement.type "ability")}}selected{{/if}}>Ability ≥</option>
+                    <option value="skill"          {{#if (eq o.requirement.type "skill")}}selected{{/if}}>Skill ≥</option>
+                    <option value="race"           {{#if (eq o.requirement.type "race")}}selected{{/if}}>Race</option>
+                    <option value="language"       {{#if (eq o.requirement.type "language")}}selected{{/if}}>Language</option>
+                    <option value="spell"          {{#if (eq o.requirement.type "spell")}}selected{{/if}}>Known Spell</option>
+                    <option value="proficiency"    {{#if (eq o.requirement.type "proficiency")}}selected{{/if}}>Proficiency</option>
+                    <option value="item"           {{#if (eq o.requirement.type "item")}}selected{{/if}}>Has Item</option>
+                    <option value="flag"           {{#if (eq o.requirement.type "flag")}}selected{{/if}}>Flag</option>
+                    <option value="previousAction" {{#if (eq o.requirement.type "previousAction")}}selected{{/if}}>Previous Action</option>
+                    <option value="gmonly"         {{#if (eq o.requirement.type "gmonly")}}selected{{/if}}>GM Only</option>
+                  </select>
+                </label>
+
+                <!-- ABILITY -->
+                <label class="req-ability-only">
+                  Ability
+                  <select class="req-ability-key" data-nid="{{../id}}" data-oid="{{o.id}}">
+                    {{#each (array "str" "dex" "con" "int" "wis" "cha") as |ab|}}
+                      <option value="{{ab}}" {{#if (eq ../o.requirement.key ab)}}selected{{/if}}>{{ab}}</option>
+                    {{/each}}
+                  </select>
+                </label>
+                <label class="req-ability-only">
+                  Minimum
+                  <input type="number" class="req-ability-val" data-nid="{{../id}}" data-oid="{{o.id}}" value="{{o.requirement.value}}">
+                </label>
+
+                <!-- SKILL -->
+                <label class="req-skill-only">
+                  Skill
+                  <select class="req-skill-key" data-nid="{{../id}}" data-oid="{{o.id}}">
+                    {{#each (array "acr" "ani" "arc" "ath" "dec" "his" "ins" "itm" "inv" "med" "nat" "prc" "prf" "per" "rel" "slt" "ste" "sur") as |sk|}}
+                      <option value="{{sk}}" {{#if (eq ../o.requirement.key sk)}}selected{{/if}}>{{sk}}</option>
+                    {{/each}}
+                  </select>
+                </label>
+                <label class="req-skill-only">
+                  Minimum
+                  <input type="number" class="req-skill-val" data-nid="{{../id}}" data-oid="{{o.id}}" value="{{o.requirement.value}}">
+                </label>
+
+                <!-- RACE -->
+                <label class="req-race-only wide">Race
+                  <input type="text" class="req-race-val" data-nid="{{../id}}" data-oid="{{o.id}}" value="{{o.requirement.value}}">
+                </label>
+
+                <!-- LANGUAGE -->
+                <label class="req-language-only wide">Language
+                  <input type="text" class="req-language-val" data-nid="{{../id}}" data-oid="{{o.id}}" value="{{o.requirement.value}}">
+                </label>
+
+                <!-- SPELL -->
+                <label class="req-spell-only wide">Known Spell (exact name)
+                  <input type="text" class="req-spell-val" data-nid="{{../id}}" data-oid="{{o.id}}" value="{{o.requirement.value}}">
+                </label>
+
+                <!-- PROFICIENCY -->
+                <label class="req-prof-only wide">Proficiency
+                  <select class="req-prof-val" data-nid="{{../id}}" data-oid="{{o.id}}">
+                    <option value="">(pick skill)</option>
+                    {{#each (array "acr" "ani" "arc" "ath" "dec" "his" "ins" "itm" "inv" "med" "nat" "prc" "prf" "per" "rel" "slt" "ste" "sur") as |sk|}}
+                      <option value="{{sk}}" {{#if (eq ../o.requirement.value sk)}}selected{{/if}}>{{sk}}</option>
+                    {{/each}}
+                  </select>
+                </label>
+
+                <!-- ITEM -->
+                <label class="req-item-only wide">Has Item (exact name)
+                  <input type="text" class="req-item-val" data-nid="{{../id}}" data-oid="{{o.id}}" value="{{o.requirement.value}}">
+                </label>
+
+                <!-- FLAG -->
+                <label class="req-flag-only">Flag (scope.key)
+                  <input type="text" class="req-flag-key" data-nid="{{../id}}" data-oid="{{o.id}}" value="{{o.requirement.key}}">
+                </label>
+                <label class="req-flag-only">
+                  Op
+                  <select class="req-flag-op" data-nid="{{../id}}" data-oid="{{o.id}}">
+                    {{#each (array "==" "!=" "in" "has") as |op|}}
+                      <option value="{{op}}" {{#if (eq ../o.requirement.op op)}}selected{{/if}}>{{op}}</option>
+                    {{/each}}
+                  </select>
+                </label>
+                <label class="req-flag-only">
+                  Value
+                  <input type="text" class="req-flag-val" data-nid="{{../id}}" data-oid="{{o.id}}" value="{{o.requirement.value}}">
+                </label>
+
+                <!-- PREVIOUS ACTION -->
+                <label class="req-prev-only wide">Previous Action Key
+                  <input type="text" class="req-prev-val" data-nid="{{../id}}" data-oid="{{o.id}}" value="{{o.requirement.value}}">
+                </label>
+              </div>
+
+              {{#if ../showAdvanced}}
+                <div class="muted" style="margin-top:6px;">(Advanced) Requirement JSON</div>
+                <textarea class="opt-req" data-nid="{{../id}}" data-oid="{{o.id}}" placeholder="{}">{{json o.requirement}}</textarea>
+              {{/if}}
+
+              <div class="muted" style="margin-top:10px;">Results</div>
+
+              <div class="res-list" data-nid="{{../id}}" data-oid="{{o.id}}">
+                {{#if o.results}}
+                  {{#each o.results as |r idx|}}
+                    <div class="res-row" data-ridx="{{idx}}" style="border:1px solid #ddd; border-radius:8px; padding:8px; margin-bottom:6px;">
+                      <div style="display:grid; grid-template-columns: 1fr auto; gap:8px; align-items:center;">
+                        <label>Type
+                          <select class="res-type" data-nid="{{../../id}}" data-oid="{{../id}}" data-ridx="{{idx}}">
+                            <option value="">(none)</option>
+                            <option value="openTrade"    {{#if (eq r.type "openTrade")}}selected{{/if}}>Open Trade (open NPC sheet)</option>
+                            <option value="startCombat"  {{#if (eq r.type "startCombat")}}selected{{/if}}>Start Fight</option>
+                            <option value="giveItem"     {{#if (eq r.type "giveItem")}}selected{{/if}}>Take Item (NPC → PC)</option>
+                            <option value="removeItem"   {{#if (eq r.type "removeItem")}}selected{{/if}}>Remove Item from PC</option>
+                            <option value="setFlag"      {{#if (eq r.type "setFlag")}}selected{{/if}}>Set Flag</option>
+                            <option value="unsetFlag"    {{#if (eq r.type "unsetFlag")}}selected{{/if}}>Unset Flag</option>
+                            <option value="macro"        {{#if (eq r.type "macro")}}selected{{/if}}>Run Macro</option>
+                            <option value="roll"         {{#if (eq r.type "roll")}}selected{{/if}}>Roll</option>
+                            <option value="giveRelation" {{#if (eq r.type "giveRelation")}}selected{{/if}}>Adjust Relation</option>
+                            <option value="ends"         {{#if (eq r.type "ends")}}selected{{/if}}>End Dialogue</option>
+                          </select>
+                        </label>
+                        <button type="button" class="res-del" data-nid="{{../../id}}" data-oid="{{../id}}" data-ridx="{{idx}}">
+                          <i class="fas fa-trash"></i>
+                        </button>
+                      </div>
+
+                      <div class="res-fields" style="margin-top:6px;">
+                        <div class="rf rf-item">
+                          <label>Item Name
+                            <input type="text" class="res-item-name" data-nid="{{../../id}}" data-oid="{{../id}}" data-ridx="{{idx}}" value="{{r.value}}">
+                          </label>
+                        </div>
+
+                        <div class="rf rf-flag">
+                          <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:8px;">
+                            <label>Target
+                              <select class="res-on" data-nid="{{../../id}}" data-oid="{{../id}}" data-ridx="{{idx}}">
+                                <option value="actor" {{#if (eq r.on "actor")}}selected{{/if}}>PC</option>
+                                <option value="npc"   {{#if (eq r.on "npc")}}selected{{/if}}>NPC</option>
+                                <option value="user"  {{#if (eq r.on "user")}}selected{{/if}}>User</option>
+                                <option value="scene" {{#if (eq r.on "scene")}}selected{{/if}}>Scene</option>
+                              </select>
+                            </label>
+                            <label>Flag (scope.key)
+                              <input type="text" class="res-flag-key" data-nid="{{../../id}}" data-oid="{{../id}}" data-ridx="{{idx}}" value="{{r.key}}">
+                            </label>
+                            <label class="rf-flag-val">Value
+                              <input type="text" class="res-flag-val" data-nid="{{../../id}}" data-oid="{{../id}}" data-ridx="{{idx}}" value="{{r.value}}">
+                            </label>
+                          </div>
+                        </div>
+
+                        <div class="rf rf-macro">
+                          <label>Macro Name
+                            <input type="text" class="res-macro-name" data-nid="{{../../id}}" data-oid="{{../id}}" data-ridx="{{idx}}" value="{{r.value}}">
+                          </label>
+                        </div>
+
+                        <div class="rf rf-roll">
+                          <div style="display:grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap:8px;">
+                            <label>Kind
+                              <select class="res-roll-kind" data-nid="{{../../id}}" data-oid="{{../id}}" data-ridx="{{idx}}">
+                                <option value="skill"   {{#if (eq r.key "skill")}}selected{{/if}}>Skill</option>
+                                <option value="ability" {{#if (eq r.key "ability")}}selected{{/if}}>Ability</option>
+                                <option value="formula" {{#if (eq r.key "formula")}}selected{{/if}}>Formula</option>
+                              </select>
+                            </label>
+                            <label>Value (e.g. pers / dex / 1d20+5)
+                              <input type="text" class="res-roll-value" data-nid="{{../../id}}" data-oid="{{../id}}" data-ridx "{{idx}}" value="{{r.value}}">
+                            </label>
+                            <label>DC
+                              <input type="number" class="res-roll-dc" data-nid="{{../../id}}" data-oid="{{../id}}" data-ridx="{{idx}}" value="{{r.dc}}">
+                            </label>
+                            <label>Store As
+                              <input type="text" class="res-roll-store" data-nid="{{../../id}}" data-oid="{{../id}}" data-ridx="{{idx}}" value="{{r.storeAs}}">
+                            </label>
+                          </div>
+                        </div>
+
+                        <div class="rf rf-relation">
+                          <label>Delta (e.g. 5 or -5)
+                            <input type="number" class="res-rel-delta" data-nid="{{../../id}}" data-oid="{{../id}}" data-ridx="{{idx}}" value="{{r.value}}">
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+                  {{/each}}
+                {{/if}}
+              </div>
+
+              <button type="button" class="res-add" data-nid="{{../id}}" data-oid="{{o.id}}">
+                <i class="fas fa-plus"></i> Add Result
+              </button>
+
+              {{#if ../showAdvanced}}
+                <div class="muted" style="margin-top:6px;">Results (JSON Array)</div>
+                <textarea class="opt-res" data-nid="{{../id}}" data-oid="{{o.id}}" placeholder='[{"type":"goto","value":"otherNode"}]'>{{json o.results}}</textarea>
+              {{/if}}
+            </div>
+          {{/each}}
+        </div>
+      </section>
+    {{/each}}
+  </div>
+</div>

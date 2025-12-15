@@ -1,0 +1,61 @@
+<style>
+  .ironic-dialogue .dlg-wrap { padding: 12px 14px; }
+  .ironic-dialogue .dlg-header { display:flex; align-items:center; gap:8px; margin-bottom:8px; }
+  .ironic-dialogue .dlg-speaker { font-weight:700; font-size:1.05rem; }
+  .ironic-dialogue .dlg-meta { margin-left:auto; font-size:0.85rem; opacity:0.7; }
+  .ironic-dialogue .dlg-text { background: rgba(0,0,0,0.05); padding:10px 12px; border-radius:8px; line-height:1.35; white-space:pre-wrap; }
+    .ironic-dialogue .opt-req.needs-roll { color:#1a237e; }
+
+  /* 2-column option grid */
+  .ironic-dialogue .dlg-options {
+    margin-top:10px;
+    display:grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap:8px;
+  }
+  /* Mobile/narrow fallback: single column */
+  @media (max-width: 520px) {
+    .ironic-dialogue .dlg-options { grid-template-columns: 1fr; }
+  }
+
+  .ironic-dialogue .dlg-option {
+    display:flex; align-items:center; justify-content:space-between;
+    border:1px solid var(--color-border-light-secondary, #8883);
+    border-radius:8px; padding:8px 10px; cursor:pointer; user-select:none;
+  }
+  .ironic-dialogue .dlg-option:hover { background: rgba(0,0,0,0.04); }
+  .ironic-dialogue .dlg-option.locked { opacity:0.6; cursor:not-allowed; }
+  .ironic-dialogue .lock-badge { font-size:0.8rem; opacity:0.8; }
+    .ironic-dialogue .opt-req { font-size:0.85rem; opacity:0.8; }
+    .ironic-dialogue .opt-req.is-locked { color:#b71c1c; opacity:1; }
+</style>
+
+<div class="dlg-wrap">
+  <div class="dlg-header">
+    <div class="dlg-speaker">{{node.speaker}}</div>
+    {{#if (eq npcName actorName)}}
+    <div class="dlg-meta">{{actorName}}</div>
+    {{else}}
+    <div class="dlg-meta">{{npcName}} • {{actorName}}</div>
+    {{/if}}
+  </div>
+
+  <div class="dlg-text">{{node.text}}</div>
+
+    <div class="dlg-options">
+    {{#each options as |o|}}
+        <button class="dlg-option {{#if o.locked}}locked{{/if}}" data-optid="{{o.id}}" {{#if o.locked}}data-reason="{{o.lockReason}}"{{/if}}>
+        <div class="opt-body">
+            <div class="opt-label">{{o.label}}</div>
+            {{#if o.reqText}}
+            <div class="opt-req {{#if o.needsRoll}}needs-roll{{/if}} {{#if o.locked}}is-locked{{/if}}">
+                {{o.reqText}}{{#if o.needsRoll}} (roll){{/if}}
+            </div>
+            {{/if}}
+        </div>
+        {{#if o.locked}}<span class="lock-badge"><i class="fas fa-lock"></i> {{o.lockReason}}</span>{{/if}}
+        </button>
+    {{/each}}
+    </div>
+
+</div>

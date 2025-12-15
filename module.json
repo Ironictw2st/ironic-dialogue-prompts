@@ -1,0 +1,43 @@
+{
+  "id": "ironic-dialogue-prompts",
+  "title": "Ironic's Dialogue Prompts",
+  "version": "1.0.0",
+  "compatibility": {
+    "minimum": "13",
+    "verified": "13"
+  },
+  "authors": [
+    {
+      "name": "Ironic",
+      "discord": "ironic._.",
+      "flags": {}
+    }
+  ],
+  "scripts": [
+    "scripts/settings.js",
+    "scripts/requirements.js",
+    "scripts/results.js",
+    "scripts/dialogue-window.js",
+    "scripts/dialogue-editor.js",
+    "scripts/dialogue-graph.js",
+    "scripts/main.js"
+  ],
+  "flags": {
+    "canUpload": true
+  },
+  "relationships": {
+    "requires": [
+      {
+        "id": "ironic-dc-checks",
+        "type": "module",
+        "compatibility": {}
+      },
+      {
+        "id": "ironic-relational-tree",
+        "type": "module",
+        "compatibility": {}
+      }
+    ]
+  },
+  "description": ""
+}

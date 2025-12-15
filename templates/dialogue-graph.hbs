@@ -1,0 +1,64 @@
+<style>
+  .ironic-dialogue .graph-wrap { width:100%; height:100%; }
+  .ironic-dialogue svg { width:100%; height:100%; background: var(--color-bg, transparent); }
+  .ironic-dialogue .edge { stroke: #555; stroke-width: 2px; }
+  .ironic-dialogue .edge-label { font-size: 12px; fill:#222; paint-order: stroke; stroke: #fff; stroke-width: 4px; }
+  .ironic-dialogue .dg-node { cursor: pointer; }
+  .ironic-dialogue .node-label { font-weight: 700; font-size: 12px; }
+  .ironic-dialogue .badge { font-size: 11px; opacity: .9; }
+  .ironic-dialogue .node-rect { rx:10; ry:10; fill:#e9e9ee; stroke:#666; stroke-width:1.2px; }
+  .ironic-dialogue .node-start .node-rect { fill:#d9f5e0; stroke:#2e7d32; }
+  .ironic-dialogue .node-end   .node-rect { fill:#ffe3e3; stroke:#c62828; }
+  .ironic-dialogue .node-action .node-rect { fill:#ece2ff; stroke:#7b1fa2; }
+  .ironic-dialogue .legend { font-size:12px; opacity:.8;}
+</style>
+
+<div class="graph-wrap">
+  <svg viewBox="0 0 {{width}} {{height}}" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <marker id="arrow" markerWidth="10" markerHeight="8" refX="10" refY="4" orient="auto">
+        <polygon points="0,0 10,4 0,8" fill="#555" />
+      </marker>
+    </defs>
+
+    <!-- edges -->
+    {{#each edges as |e|}}
+      <line class="edge" x1="{{e.x1}}" y1="{{e.y1}}" x2="{{e.x2}}" y2="{{e.y2}}" marker-end="url(#arrow)"/>
+      <text class="edge-label" x="{{calcMid e.x1 e.x2}}" y="{{calcMid e.y1 e.y2 - 6}}">{{e.label}}</text>
+    {{/each}}
+
+    <!-- nodes -->
+    {{#each nodes as |n|}}
+      <g class="dg-node node-{{n.type}}" data-id="{{n.id}}" transform="translate({{n.x}},{{n.y}})">
+        <rect class="node-rect" x="-48" y="-20" width="96" height="40"></rect>
+        <text class="node-label" text-anchor="middle" alignment-baseline="middle" y="-2">{{n.label}}</text>
+        {{#if (eq n.type "start")}}
+          <text class="badge" text-anchor="middle" y="12">Start</text>
+        {{/if}}
+        {{#if (eq n.type "end")}}
+          <text class="badge" text-anchor="middle" y="12">End</text>
+        {{/if}}
+        {{#if (eq n.type "action")}}
+          <text class="badge" text-anchor="middle" y="12">{{n.label}}</text>
+        {{/if}}
+      </g>
+    {{/each}}
+
+    <!-- legend -->
+    <g class="legend" transform="translate(12,12)">
+      <rect x="0" y="0" width="155" height="58" rx="8" ry="8" fill="#fff" stroke="#aaa"/>
+      <g transform="translate(8,10)">
+        <rect x="0" y="-10" width="18" height="18" rx="4" ry="4" class="node-rect"/>
+        <text x="26" y="2">Dialogue Node</text>
+      </g>
+      <g transform="translate(8,32)">
+        <rect x="0" y="-10" width="18" height="18" rx="4" ry="4" class="node-rect node-start"/>
+        <text x="26" y="2">Start</text>
+      </g>
+      <g transform="translate(88,32)">
+        <rect x="0" y="-10" width="18" height="18" rx="4" ry="4" class="node-rect node-end"/>
+        <text x="26" y="2">End/Action</text>
+      </g>
+    </g>
+  </svg>
+</div>
