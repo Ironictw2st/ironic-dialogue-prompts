@@ -78,6 +78,43 @@ class DialogueResults {
           return;
         }
 
+                // --- NEW: open Ironic Shop (keeps OG 'opentrade') ---
+        case "openshop":
+        case "shop":
+        case "ironicshop": {
+          // Resolve API: prefer the global you exposed; fall back to common IDs
+          const shopApi =
+            game.ironicShop ??
+            game.modules.get("ironic-shop")?.api ??
+            game.modules.get("ironic_shop")?.api ??
+            game.modules.get("ironicShop")?.api;
+
+          if (!shopApi?.openShop) {
+            ui.notifications.warn("Ironic Shop module not available or API not exposed.");
+            return;
+          }
+
+          // Is this NPC a merchant? (be generous about namespaces)
+          const isMerchant =
+            (await npc.getFlag?.("ironic-shop", "isShop")) ??
+            (await npc.getFlag?.("ironic_shop", "isShop")) ??
+            (await npc.getFlag?.("ironicShop", "isShop")) ??
+            false;
+
+          if (!isMerchant) {
+            ui.notifications.warn(`${npc?.name ?? "This NPC"} is not configured as a merchant.`);
+            return;
+          }
+
+          // Open the shop
+          await shopApi.openShop({ shopActor: npc, playerActor });
+
+          // Close the dialogue unless explicitly disabled: { type:"openshop", close:false }
+          if (result.close !== false) app?.close?.();
+          return;
+        }
+
+
         case "takeitem": // alias
         case "giveitem": {
           const name = String(result.value || "");

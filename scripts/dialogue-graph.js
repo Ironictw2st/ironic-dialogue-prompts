@@ -46,7 +46,7 @@ class DialogueGraphWindow extends Application {
           for (const r of o.results) {
             const t = (r?.type || "").toLowerCase();
             if (t === "goto" && r.value) { target = String(r.value); break; }
-            if (t === "opentrade")        target = ensurePseudo("__TRADE__", "action", "Shop");
+            if (t === "opentrade" || t === "ironicshop")        target = ensurePseudo("__TRADE__", "action", "Shop");
             if (t === "startcombat" || t === "startfight")
               target = ensurePseudo("__COMBAT__", "action", "Fight");
             if (t === "ends")             target = ensurePseudo("__END__", "end", "End");

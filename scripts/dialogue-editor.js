@@ -440,10 +440,15 @@ class DialogueEditor extends FormApplication {
     this._normalizeGraph();
     this._cleanDanglingTargets();
     
+    const MODULE_ID = "ironic-dialogue-prompts";
     await this.npc.update({
-        'flags.ironic-dialogue-prompts.dialogue': { dialogueNodes: this.dataModel }
-    }, { diff: false, recursive: false });
-    
+      [`flags.${MODULE_ID}.dialogue`]: {
+        dialogueNodes: this.dataModel,
+        nodes: null,
+        start: null
+      }
+    }, { diff: false });
+
     this._dirty = false;
     ui.notifications.info("Dialogue saved.");
     this.close();
@@ -454,14 +459,20 @@ class DialogueEditor extends FormApplication {
       new DialoguePromptWindow(this.npc, { dialogueNodes: this.dataModel }, null).render(true);
     });
 
-    // Graph (Decision Tree)
+    // Graph (Decision Tree) - Opens the visual tree editor
     html.on("click", "[data-action='dialogue_tree']", (ev) => {
       ev.preventDefault();
-      if (!window.DialogueGraphWindow) {
-        ui.notifications.warn("DialogueGraphWindow is not loaded. Did you include scripts/dialogue-graph.js and preload its template?");
+      // Prefer the new tree editor if available
+      if (window.DialogueTreeEditor) {
+        new DialogueTreeEditor(this.npc).render(true);
         return;
       }
-      new DialogueGraphWindow(this.npc, { dialogueNodes: this.dataModel }).render(true);
+      // Fallback to read-only graph viewer
+      if (window.DialogueGraphWindow) {
+        new DialogueGraphWindow(this.npc, { dialogueNodes: this.dataModel }).render(true);
+        return;
+      }
+      ui.notifications.warn("Tree Editor not loaded. Include dialogue-tree-editor.js and its template.");
     });
   }
 
@@ -512,18 +523,32 @@ class DialogueEditor extends FormApplication {
 
   // FIX: Use update with diff:false to REPLACE instead of merge
   try {
+    const MODULE_ID = "ironic-dialogue-prompts";
     await this.npc.update({
-      'flags.ironic-dialogue-prompts.dialogue': { dialogueNodes: this.dataModel }
-    }, { diff: false, recursive: false });
-    
+      [`flags.${MODULE_ID}.dialogue`]: {
+        dialogueNodes: this.dataModel,
+        nodes: null,
+        start: null
+      }
+    }, { diff: false });
+
     this._dirty = false;
     ui.notifications.info(`Deleted node "${nodeId}".`);
     this.render(true);
+
   } catch (err) {
     console.error("Failed to save deletion:", err);
     ui.notifications.error("Failed to save deletion");
   }
 }
+
+  _getStoreDoc() {
+    // If this is a token actor, store on the TokenDocument (persists for that placed token)
+    if (this.npc?.isToken && this.npc?.token?.document) return this.npc.token.document;
+    // Otherwise store on the Actor
+    return this.npc;
+ }
+
 }
 
 window.DialogueEditor = DialogueEditor;

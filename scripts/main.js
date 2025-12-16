@@ -70,13 +70,22 @@ Hooks.on('renderSceneControls', (controls, html, data) => {
       event.preventDefault();
       event.stopPropagation();
 
+      // Helper to open the appropriate editor (prefer Tree Editor)
+      const openEditor = (actor) => {
+        if (window.DialogueTreeEditor) {
+          new DialogueTreeEditor(actor).render(true);
+        } else {
+          new DialogueEditor(actor, { mode: "edit" }).render(true);
+        }
+      };
+
       const pre = getTokenCandidate() || canvas.tokens?.controlled?.[0];
       if (pre?.actor?.type === "npc") {
-        new DialogueEditor(pre.actor, { mode: "edit" }).render(true);
+        openEditor(pre.actor);
         return;
       }
 
-      ui.notifications.info("GM: target an NPC token to open the Dialogue Editor.");
+      ui.notifications.info("GM: target an NPC token to open the Dialogue Tree Editor.");
 
       const onceTargetGM = async (token, userId, targeted) => {
         if (userId !== game.user.id || !targeted) return;
@@ -84,7 +93,7 @@ Hooks.on('renderSceneControls', (controls, html, data) => {
         const a = token?.actor;
         if (!a || a.type !== "npc") return ui.notifications.warn("Please target an NPC.");
         try {
-          new DialogueEditor(a, { mode: "edit" }).render(true);
+          openEditor(a);
         } catch (err) {
           console.error(err);
           ui.notifications.error("Failed to open Dialogue Editor. See console.");
@@ -159,7 +168,14 @@ async function openDialogue(npc, overridePlayerActor = undefined) {
 
   if (!dialogueData || !dialogueData.start) {
     ui.notifications.warn(`${npc.name} has no dialogue configured.`);
-    if (game.user.isGM) new DialogueEditor(npc).render(true);
+    if (game.user.isGM) {
+      // Prefer Tree Editor for creating new dialogues
+      if (window.DialogueTreeEditor) {
+        new DialogueTreeEditor(npc).render(true);
+      } else {
+        new DialogueEditor(npc).render(true);
+      }
+    }
     return;
   }
 
@@ -237,6 +253,20 @@ Hooks.once('init', () => {
   if (!Handlebars.helpers.array) Handlebars.registerHelper('array', (...args) => args.slice(0,-1));
   if (!Handlebars.helpers.calcMid)
     Handlebars.registerHelper('calcMid', (a,b,off=0)=>((Number(a)+Number(b))/2 + Number(off)));
+  
+  // Additional helpers for the tree editor
+  // calc: for positioning option ports (base + idx * spacing)
+  if (!Handlebars.helpers.calc)
+    Handlebars.registerHelper('calc', (base, idx, spacing=12) => Number(base) + (Number(idx) * Number(spacing)));
+  // add: simple addition for displaying option numbers
+  if (!Handlebars.helpers.add)
+    Handlebars.registerHelper('add', (a, b) => Number(a) + Number(b));
+  if (!Handlebars.helpers.truncate)
+    Handlebars.registerHelper('truncate', (str, len=20) => {
+      if (!str) return "";
+      const s = String(str);
+      return s.length > len ? s.slice(0, len) + "…" : s;
+    });
 });
 
 // =====================
@@ -246,3 +276,4 @@ window.DialoguePromptWindow = DialoguePromptWindow;
 window.DialogueEditor = DialogueEditor;
 window.DialogueRequirements = DialogueRequirements;
 window.DialogueResults = DialogueResults;
+window.DialogueTreeEditor = DialogueTreeEditor;

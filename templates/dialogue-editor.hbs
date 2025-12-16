@@ -193,6 +193,7 @@
                           <select class="res-type" data-nid="{{../../id}}" data-oid="{{../id}}" data-ridx="{{idx}}">
                             <option value="">(none)</option>
                             <option value="openTrade"    {{#if (eq r.type "openTrade")}}selected{{/if}}>Open Trade (open NPC sheet)</option>
+                            <option value="openShop"    {{#if (eq r.type "openShop")}}selected{{/if}}>Open Ironic Shop</option>
                             <option value="startCombat"  {{#if (eq r.type "startCombat")}}selected{{/if}}>Start Fight</option>
                             <option value="giveItem"     {{#if (eq r.type "giveItem")}}selected{{/if}}>Take Item (NPC → PC)</option>
                             <option value="removeItem"   {{#if (eq r.type "removeItem")}}selected{{/if}}>Remove Item from PC</option>
