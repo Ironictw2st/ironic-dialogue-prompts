@@ -440,10 +440,7 @@ class DialogueEditor extends FormApplication {
     this._normalizeGraph();
     this._cleanDanglingTargets();
     
-    await this.npc.update({
-        'flags.ironic-dialogue-prompts.dialogue': { dialogueNodes: this.dataModel }
-    }, { diff: false, recursive: false });
-    
+    await this.npc.setFlag('ironic-dialogue-prompts', 'dialogue', { dialogueNodes: this.dataModel });
     this._dirty = false;
     ui.notifications.info("Dialogue saved.");
     this.close();
@@ -512,13 +509,11 @@ class DialogueEditor extends FormApplication {
 
   // FIX: Use update with diff:false to REPLACE instead of merge
   try {
-    await this.npc.update({
-      'flags.ironic-dialogue-prompts.dialogue': { dialogueNodes: this.dataModel }
-    }, { diff: false, recursive: false });
-    
+    await this.npc.setFlag('ironic-dialogue-prompts', 'dialogue', { dialogueNodes: this.dataModel });
     this._dirty = false;
     ui.notifications.info(`Deleted node "${nodeId}".`);
     this.render(true);
+
   } catch (err) {
     console.error("Failed to save deletion:", err);
     ui.notifications.error("Failed to save deletion");
