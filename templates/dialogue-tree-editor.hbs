@@ -367,7 +367,6 @@
     padding-top: 12px;
     border-top: 1px solid #ddd;
   }
-
   .tree-editor .help-text {
     font-size: 11px;
     color: #888;
@@ -450,7 +449,6 @@
       </div>
     </div>
   </div>
-
   <!-- Edit Panel -->
   {{#if selectedNode}}
   <div class="edit-panel">
@@ -458,7 +456,6 @@
       <h3><i class="fas fa-edit"></i> Edit Node</h3>
       <button class="close-btn" data-action="close-panel"><i class="fas fa-times"></i></button>
     </div>
-
     <div class="panel-section">
       <h4>Node Properties</h4>
       <div class="field-row">
@@ -494,7 +491,6 @@
             <i class="fas fa-trash"></i>
           </button>
         </div>
-
         <div class="inline-fields">
           <div class="field-row">
             <label>Label</label>
@@ -749,12 +745,10 @@
         </div>
       </div>
       {{/each}}
-
       <button type="button" class="btn-small" data-action="add-option">
         <i class="fas fa-plus"></i> Add Option
       </button>
     </div>
-
     <div class="panel-actions">
       {{#unless (eq selectedNode.id ../start)}}
       <button type="button" class="btn-small btn-danger" data-action="delete-node">
