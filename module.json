@@ -20,6 +20,7 @@
     "scripts/dialogue-window.js",
     "scripts/dialogue-editor.js",
     "scripts/dialogue-graph.js",
+    "scripts/dialogue-tree-editor.js",
     "scripts/main.js"
   ],
   "flags": {
@@ -39,5 +40,8 @@
       }
     ]
   },
-  "description": ""
+  "description": "<p>This module allows for the GM to create dialogue prompts, and the players to access them. </p>",
+  "url": "https://github.com/Ironictw2st/ironic-relational-tree/",
+  "manifest": "https://github.com/Ironictw2st/ironic-dialogue-prompts/releases/download/Prerelease/module.json",
+  "download": "https://github.com/Ironictw2st/ironic-dialogue-prompts/releases/download/Prerelease/ironic-dialogue-prompts.zip"
 }

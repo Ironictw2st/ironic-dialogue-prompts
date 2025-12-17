@@ -19,6 +19,14 @@ Hooks.once('init', function() {
     default: false
     });
 
-
+    // Dialogue presets storage (hidden from UI)
+    game.settings.register('ironic-dialogue-prompts', 'dialogue-presets', {
+        name: 'Dialogue Presets',
+        hint: 'Stored dialogue presets for quick loading',
+        scope: 'world',
+        config: false,
+        type: Array,
+        default: []
+    });
 
 });
